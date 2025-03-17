@@ -577,3 +577,32 @@ if __name__ == '__main__':
             print("Sample courses created and assigned to John Smith")
 
     app.run(debug=True, host='0.0.0.0', port=4000)
+
+from flask import Flask, request, jsonify
+import sqlite3
+
+app = Flask(__name__)
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    return conn
+
+@app.route('/user', methods=['GET'])
+def get_user():
+    username = request.args.get('username')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 🚨 Vulnerable SQL Query (Directly concatenating user input)
+    query = f"SELECT * FROM users WHERE username = '{username}'"
+    cursor.execute(query)
+    
+    user = cursor.fetchall()
+    conn.close()
+
+    return jsonify(user)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
